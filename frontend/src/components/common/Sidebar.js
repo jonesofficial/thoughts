@@ -1,41 +1,32 @@
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
-import { FaUser, FaInfoCircle } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { FaUser, FaInfoCircle, FaSearch } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { baseUrl } from "../../constant/url";
 import toast from "react-hot-toast";
 import { useState } from "react";
-import { FaSearch } from "react-icons/fa";
 
 const Sidebar = () => {
   const queryClient = useQueryClient();
-  const [showLogoutPopup, setShowLogoutPopup] = useState(false); // 🚀 Popup State
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
 
+  // Logout Mutation
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      try {
-        const res = await fetch(`${baseUrl}/api/auth/logout`, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
+      const res = await fetch(`${baseUrl}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-        const data = await res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Logout failed!");
 
-        if (!res.ok) {
-          throw new Error(data.error || "Logout failed!");
-        }
-
-        return data;
-      } catch (error) {
-        console.error("Logout error:", error);
-        throw error;
-      }
+      return data;
     },
     onSuccess: () => {
       toast.success("Logged out successfully");
@@ -48,114 +39,90 @@ const Sidebar = () => {
 
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
-  return (
-    <div className="md:flex-[2_2_0] w-18 max-w-52">
-      <div className="sticky top-0 h-screen flex flex-col w-20 md:w-full">
-        <ul className="flex flex-col gap-3 mt-20">
-          <li className="flex justify-center md:justify-start">
-            <Link
-              to="/"
-              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-            >
-              <MdHomeFilled className="w-8 h-8" />
-              <span className="text-lg hidden md:block">Home</span>
-            </Link>
-          </li>
-          <li className="flex justify-center md:justify-start">
-            <Link
-              to="/notifications"
-              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-            >
-              <IoNotifications className="w-6 h-6" />
-              <span className="text-lg hidden md:block">Notifications</span>
-            </Link>
-          </li>
+  // Sidebar Menu Items
+  const menuItems = [
+    { label: "Home", to: "/", icon: <MdHomeFilled /> },
+    { label: "Notifications", to: "/notifications", icon: <IoNotifications /> },
+    {
+      label: "Profile",
+      to: `/profile/${authUser?.username}`,
+      icon: <FaUser />,
+    },
+    { label: "Search", to: "/search", icon: <FaSearch /> },
+    { label: "About", to: "/about", icon: <FaInfoCircle /> },
+  ];
 
-          <li className="flex justify-center md:justify-start">
-            <Link
-              to={`/profile/${authUser?.username}`}
-              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-            >
-              <FaUser className="w-6 h-6" />
-              <span className="text-lg hidden md:block">Profile</span>
-            </Link>
-          </li>
-
-          <li className="flex justify-center md:justify-start">
-            <Link
-              to={`/search`}
-              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-            >
-              <FaSearch className="w-6 h-6" />
-              <span className="text-lg hidden md:block">Search</span>
-            </Link>
-          </li>
-          <li className="flex justify-center md:justify-start">
-            <Link
-              to={`/about`}
-              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
-            >
-              <FaInfoCircle className="w-6 h-6" />
-              <span className="text-lg hidden md:block">About</span>
-            </Link>
-          </li>
-        </ul>
-
-        {authUser && (
-          <div
-            className="mt-auto mb-10 flex gap-2 items-start transition-all duration-300 hover:bg-[#181818] py-2 px-4 rounded-full cursor-pointer"
-            onClick={() => setShowLogoutPopup(true)}
+  // Logout Popup Component
+  const LogoutPopup = () => (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-black p-6 rounded-lg text-center">
+        <h2 className="text-white text-lg font-bold">Are you sure?</h2>
+        <p className="text-gray-400 text-sm mb-4">
+          Do you really want to logout?
+        </p>
+        <div className="flex justify-center gap-4">
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            onClick={() => {
+              logout();
+              setShowLogoutPopup(false);
+            }}
           >
-            <div className="avatar hidden md:inline-flex">
-              <div className="w-8 rounded-full">
-                <img
-                  src={
-                    authUser?.profileImg || "../avatars/profile_placeholder.png"
-                  }
-                  alt="Placeholder"
-                />
-              </div>
-            </div>
-            <div className="flex justify-between flex-1">
-              <div className="hidden md:block">
-                <p className="text-white font-bold text-sm w-20 truncate">
-                  {authUser?.fullName}
-                </p>
-                <p className="text-slate-500 text-sm">@{authUser?.username}</p>
-              </div>
-              <BiLogOut className="w-5 h-5 cursor-pointer" />
-            </div>
-          </div>
-        )}
-
-        {showLogoutPopup && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-black p-6 rounded-lg text-center">
-              <h2 className="text-white text-lg font-bold">Are you sure?</h2>
-              <p className="text-gray-400 text-sm mb-4">
-                Do you really want to logout?
-              </p>
-              <div className="flex justify-center gap-4">
-                <button
-                  className="bg-red-500 text-white px-4 py-2 rounded"
-                  onClick={() => {
-                    logout();
-                    setShowLogoutPopup(false);
-                  }}
-                >
-                  Yes
-                </button>
-                <button
-                  className="bg-gray-700 text-white px-4 py-2 rounded"
-                  onClick={() => setShowLogoutPopup(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            Yes
+          </button>
+          <button
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+            onClick={() => setShowLogoutPopup(false)}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col h-screen bg-black w-20 sm:w-16 md:w-52">
+      {/* Sidebar Menu */}
+      <ul className="flex-1 flex flex-col gap-5 mt-10">
+        {menuItems.map(({ label, to, icon }, index) => (
+          <li key={index} className="flex justify-center md:justify-start">
+            <Link
+              to={to}
+              className="flex items-center gap-3 hover:bg-stone-900 transition-all rounded-full duration-300 py-2 px-2 md:px-4"
+            >
+              <div className="text-xl">{icon}</div>
+              <span className="hidden md:block text-lg">{label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      {/* Logout Section */}
+      {authUser && (
+        <div
+          className="flex items-center gap-3 p-4 mt-auto hover:bg-[#181818] transition rounded-full cursor-pointer"
+          onClick={() => setShowLogoutPopup(true)}
+        >
+          <div className="hidden md:block w-10 h-10 rounded-full overflow-hidden">
+            <img
+              src={authUser?.profileImg || "/avatars/profile_placeholder.png"}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="hidden md:flex flex-col">
+            <p className="text-white font-bold text-sm truncate">
+              {authUser?.fullName}
+            </p>
+            <p className="text-gray-500 text-xs">@{authUser?.username}</p>
+          </div>
+          <BiLogOut className="text-xl md:text-lg cursor-pointer text-gray-500" />
+        </div>
+      )}
+
+      {/* Logout Confirmation Popup */}
+      {showLogoutPopup && <LogoutPopup />}
     </div>
   );
 };

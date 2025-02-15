@@ -127,7 +127,7 @@ const ProfilePage = () => {
   }, [username, refetch]);
 
   return (
-    <div className="flex-[4_4_0] border-r border-gray-100 min-h-screen">
+    <div className="flex-[4_4_0]  min-h-screen">
       {/* HEADER */}
       {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
       {!isLoading && !isRefetching && !user && (
@@ -186,7 +186,7 @@ const ProfilePage = () => {
                     src={
                       profileImg ||
                       user?.profileImg ||
-                      "/avatars/Profile_placeholder.png"
+                      "/avatars/profile_placeholder.png"
                     }
                     alt="user-placeholder"
                   />

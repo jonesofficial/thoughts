@@ -199,7 +199,12 @@ const Post = ({ post }) => {
               </span>
             )}
           </div>
-          <div className="mt-2 text-gray-200 break-words">{post.text}</div>
+          <div
+            className="mt-2 text-gray-200 break-words"
+            style={{ whiteSpace: "pre-wrap" }}
+          >
+            {post.text}
+          </div>
           {post.img && (
             <img
               src={post.img}
