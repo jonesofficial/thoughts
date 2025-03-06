@@ -5,7 +5,7 @@ import generateToken from "../utils/generateToken.js";
 export const signup = async (req, res) => {
   try {
     const { username, fullName, email, password } = req.body;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; //used to find the email is in the correct format or not
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: "Invalid email format!" });
